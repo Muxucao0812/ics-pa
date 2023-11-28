@@ -35,6 +35,7 @@ static void gen_rand_expr() {
   buf[0] = '\0';
 }
 
+
 int main(int argc, char *argv[]) {
   int seed = time(0);
   srand(seed);
