@@ -23,8 +23,16 @@ const char *regs[] = {
   "s8", "s9", "s10", "s11", "t3", "t4", "t5", "t6"
 };
 
+// nemu/src/isa/$ISA/reg.c
 void isa_reg_display() {
+  int reg_num = ARRLEN(regs);
+  int i;
+
+  for (i = 0; i < reg_num; i++) {
+    printf("%-8s%-#20lx%-20ld\n", regs[i], cpu.gpr[i], cpu.gpr[i]);
+  }
 }
+
 
 word_t isa_reg_str2val(const char *s, bool *success) {
   return 0;
