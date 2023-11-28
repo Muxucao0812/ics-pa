@@ -40,4 +40,19 @@ void init_wp_pool() {
 }
 
 /* TODO: Implement the functionality of watchpoint */
+void wp_difftest() {
+  WP* h = head;
+  while (h) {
+    bool _;
+    word_t new = expr(h->expr, &_);
+    if (h->old != new) {
+      printf("Watchpoint %d: %s\n"
+        "Old value = %lu\n"
+        "New value = %lu\n"
+        , h->NO, h->expr, h->old, new);
+      h->old = new;
+    }
+    h = h->next;
+  }
+}
 

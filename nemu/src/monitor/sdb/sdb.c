@@ -20,7 +20,7 @@
 #include "sdb.h"
 #include "common.h"
 #include "/home/meng/Code/MICS5910_FinalProject/ics2023/nemu/include/memory/vaddr.h"
-
+#include "/home/meng/Code/MICS5910_FinalProject/ics2023/nemu/src/monitor/sdb/watchpoint.c"
 
 
 static int is_batch_mode = false;
@@ -130,6 +130,83 @@ static int cmd_x(char *args) {
   
   return 0;
 }
+static WP* new_wp() {
+  assert(free_);
+  WP* ret = free_;
+  free_ = free_->next;
+  ret->next = head;
+  head = ret;
+  return ret;
+}
+
+static void free_wp(WP *wp) {
+  WP* h = head;
+  if (h == wp) head = NULL;
+  else {
+    while (h && h->next != wp) h = h->next;
+    assert(h);
+    h->next = wp->next;
+  }
+  wp->next = free_;
+  free_ = wp;
+}
+
+
+
+void wp_watch(char *expr, word_t res) {
+  WP* wp = new_wp();
+  strcpy(wp->expr, expr);
+  wp->old = res;
+  printf("Watchpoint %d: %s\n", wp->NO, expr);
+}
+
+void wp_remove(int no) {
+  assert(no < NR_WP);
+  WP* wp = &wp_pool[no];
+  free_wp(wp);
+  printf("Delete watchpoint %d: %s\n", wp->NO, wp->expr);
+}
+
+void wp_iterate() {
+  WP* h = head;
+  if (!h) {
+    puts("No watchpoints.");
+    return;
+  }
+  printf("%-8s%-8s\n", "Num", "What");
+  while (h) {
+    printf("%-8d%-8s\n", h->NO, h->expr);
+    h = h->next;
+  }
+}
+
+
+static int cmd_w(char* args) {
+  if (!args) {
+    printf("Usage: w EXPR\n");
+    return 0;
+  }
+  bool success;
+  word_t res = expr(args, &success);
+  if (!success) {
+    puts("invalid expression");
+  } else {
+    wp_watch(args, res);
+  }
+  return 0;
+}
+
+static int cmd_d(char* args) {
+  char *arg = strtok(NULL, "");
+  if (!arg) {
+    printf("Usage: d N\n");
+    return 0;
+  }
+  int no = strtol(arg, NULL, 10);
+  wp_remove(no);
+  return 0;
+}
+
 
 static struct {
   const char *name;
@@ -144,6 +221,9 @@ static struct {
   { "info", "Display the info of registers & watchpoints", cmd_info },
   { "x", "Usage: x N EXPR. Scan the memory from EXPR by N bytes", cmd_x },
   { "p", "Usage: p EXPR. Calculate the expression, e.g. p $eax + 1", cmd_p },
+  { "w", "Usage: w EXPR. Watch for the variation of the result of EXPR, pause at variation point", cmd_w },
+  { "d", "Usage: d N. Delete watchpoint of wp.NO=N", cmd_d },
+
 
 };
 
