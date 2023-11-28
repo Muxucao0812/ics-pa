@@ -18,6 +18,10 @@
 #include <readline/readline.h>
 #include <readline/history.h>
 #include "sdb.h"
+#include "common.h"
+#include "/home/meng/Code/MICS5910_FinalProject/ics2023/nemu/include/memory/vaddr.h"
+
+
 
 static int is_batch_mode = false;
 
@@ -87,6 +91,45 @@ static int cmd_info(char *args) {
   return 0;
 }
 
+static int cmd_p(char* args) {
+  bool success;
+  word_t res = expr(args, &success);
+  if (!success) {
+    puts("invalid expression");
+  } else {
+    printf("%lu\n", res);
+  }
+  return 0;
+}
+
+static int cmd_x(char *args) {
+  char *arg1 = strtok(NULL, " ");
+  if (arg1 == NULL) {
+    printf("Usage: x N EXPR\n");
+    return 0;
+  }
+  char *arg2 = strtok(NULL, " ");
+  if (arg1 == NULL) {
+    printf("Usage: x N EXPR\n");
+    return 0;
+  }
+
+  int n = strtol(arg1, NULL, 10);
+  vaddr_t expr = strtol(arg2, NULL, 16);
+
+  int i, j;
+  for (i = 0; i < n;) {
+    printf(ANSI_FMT("%#018lx: ", ANSI_FG_CYAN), expr);
+    for (j = 0; i < n && j < 4; i++, j++) {
+      word_t w = vaddr_read(expr, 8);
+      expr += 8;
+      printf("%#018lx ", w);
+    }
+    puts("");
+  }
+  
+  return 0;
+}
 
 static struct {
   const char *name;
@@ -99,6 +142,8 @@ static struct {
   /* TODO: Add more commands */
   { "si", "Continue the execution in N steps, default 1", cmd_si },
   { "info", "Display the info of registers & watchpoints", cmd_info },
+  { "x", "Usage: x N EXPR. Scan the memory from EXPR by N bytes", cmd_x },
+  {"p", "Usage: p EXPR. Calculate the expression, e.g. p $eax + 1", cmd_p }
 
 };
 
