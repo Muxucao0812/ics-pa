@@ -69,6 +69,24 @@ static int cmd_si(char *args) {
   return 0;
 }
 
+static int cmd_info(char *args) {
+  /* extract the first argument */
+  char *arg = strtok(NULL, " ");
+  if (arg == NULL) {
+    printf("Usage: info r (registers) or info w (watchpoints)\n");
+  } else {
+    if (strcmp(arg, "r") == 0) {
+      isa_reg_display();
+    } else if (strcmp(arg, "w") == 0) {
+      // todo
+    } else {
+      printf("Usage: info r (registers) or info w (watchpoints)\n");
+    }
+  }
+  
+  return 0;
+}
+
 
 static struct {
   const char *name;
@@ -80,6 +98,7 @@ static struct {
   { "q", "Exit NEMU", cmd_q },
   /* TODO: Add more commands */
   { "si", "Continue the execution in N steps, default 1", cmd_si },
+  { "info", "Display the info of registers & watchpoints", cmd_info },
 
 };
 
