@@ -22,8 +22,6 @@ int is_exit_status_bad() {
     (nemu_state.state == NEMU_QUIT);
   if (!good) {
     printf(ANSI_FG_RED "The program does not exit normally.\n");
-    return 0;
-  }else {
-    return 1;
   }
+  return !good;
 }
